@@ -5,11 +5,17 @@ import { useState } from "react"
 export default function Home() {
 
   const [questions, setQuestions] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
 
   async function uploadPDF(e: any) {
+
     const file = e.target.files[0]
+    if (!file) return
+
     const formData = new FormData()
     formData.append("pdf", file)
+
+    setLoading(true)
 
     const res = await fetch("http://localhost:5000/upload", {
       method: "POST",
@@ -18,44 +24,66 @@ export default function Home() {
 
     const data = await res.json()
     setQuestions(data.questions)
+    setLoading(false)
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center py-10 px-4">
-      
-      <div className="w-full max-w-3xl bg-white shadow-md rounded-lg p-8">
-        <h1 className="text-3xl font-bold text-black mb-6 text-center">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-10">
+
+      <div className="w-full max-w-3xl">
+
+        {/* Title */}
+        <h1 className="text-4xl font-bold text-center mb-8 text-gray-800">
           PDF Quiz Generator
         </h1>
 
-        <input 
-          type="file" 
-          accept="application/pdf" 
-          onChange={uploadPDF}
-          className="block w-full border border-gray-300 rounded-md p-2 mb-6"
-        />
+        {/* Upload Card */}
+        <div className="bg-white shadow-lg rounded-xl p-6 mb-8 border">
 
-        {questions.length > 0 && (
-          <div className="space-y-4">
-            {questions.map((q, i) => (
-              <div 
-                key={i} 
-                className="bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
-              >
-                <h3 className="text-lg font-semibold text-black mb-2">
-                  Q{i + 1}: {q.question}
-                </h3>
-                <p className="text-gray-800">{q.answer}</p>
-              </div>
-            ))}
-          </div>
-        )}
+          <label className="block text-gray-600 mb-3 font-medium">
+            Upload a PDF to generate quiz questions
+          </label>
 
-        {questions.length === 0 && (
-          <p className="text-gray-500 text-center mt-6">
-            Upload a PDF to generate quiz questions.
-          </p>
-        )}
+          <input
+            type="file"
+            accept="application/pdf"
+            onChange={uploadPDF}
+            className="block w-full text-sm text-gray-600
+            file:mr-4 file:py-2 file:px-4
+            file:rounded-lg file:border-0
+            file:text-sm file:font-semibold
+            file:bg-blue-600 file:text-white
+            hover:file:bg-blue-700
+            cursor-pointer"
+          />
+
+          {loading && (
+            <p className="mt-4 text-blue-600 font-medium">
+              Generating questions...
+            </p>
+          )}
+        </div>
+
+        {/* Questions */}
+        <div className="space-y-6">
+
+          {questions.map((q, i) => (
+            <div
+              key={i}
+              className="bg-white shadow-md rounded-xl p-6 border"
+            >
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                {q.question}
+              </h3>
+
+              <p className="text-gray-600">
+                {q.answer}
+              </p>
+            </div>
+          ))}
+
+        </div>
+
       </div>
 
     </div>
