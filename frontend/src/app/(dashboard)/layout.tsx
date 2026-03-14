@@ -1,9 +1,9 @@
 "use client";
 
 import { ReactNode } from "react";
-import Menu from "@/components/menu/Sidebar";
-import Navbar from "@/components/head/Header";
-import { SidebarProvider } from "@/contexts/SidebarContext";
+import Menu from "../../components/Sidebar";
+import Navbar from "../../components/Header";
+import { SidebarProvider } from "../../contexts/SidebarContext";
 
 export default function DashboardLayout({
   children,
@@ -21,11 +21,9 @@ export default function DashboardLayout({
           <Navbar />
 
           <main className="flex-1 overflow-y-auto bg-white">
-
             <div className="w-full p-4">
               {children}
             </div>
-
           </main>
 
         </div>

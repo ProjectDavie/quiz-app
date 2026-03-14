@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSidebar } from "@/contexts/SidebarContext";
+import { useSidebar } from "../contexts/SidebarContext";
 
 export default function Menu() {
   const { collapsed } = useSidebar();
