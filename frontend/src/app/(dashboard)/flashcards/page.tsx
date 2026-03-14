@@ -1,16 +1,19 @@
-export default function QuizPage(){
+"use client";
+
+import { useState } from "react";
+import FlashcardUploadArea from "../../../components/flashcards/FlashcardUploadArea";
+import FlashcardList from "../../../components/flashcards/FlashcardList";
+
+export default function FlashcardsPage() {
+  const [flashcards, setFlashcards] = useState<any[]>([]);
 
   return (
+    <div className="mt-10">
+      {/* Upload PDF */}
+      <FlashcardUploadArea setFlashcards={setFlashcards} />
 
-    <div>
-
-      <h1 className="text-3xl font-bold mb-6">
-        Quiz Mode
-      </h1>
-
-      <p>Take quizzes generated from your notes.</p>
-
+      {/* Flashcards List */}
+      <FlashcardList flashcards={flashcards} />
     </div>
-
-  )
+  );
 }
