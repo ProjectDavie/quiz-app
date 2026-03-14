@@ -11,7 +11,7 @@ interface QuizQuestionsProps {
 
 export default function QuizQuestions({ questions }: QuizQuestionsProps) {
   return (
-    <div className="max-w-5xl mx-auto h-[500px] overflow-y-auto px-4 sm:px-6 lg:px-8">
+    <div className="max-w-5xl mx-auto h-125 overflow-y-auto px-4 sm:px-6 lg:px-8">
       {questions.length === 0 ? (
         <div className="text-gray-500 text-center py-20 bg-white rounded-2xl shadow-md">
           No questions available yet. Upload a PDF to generate your quiz.
