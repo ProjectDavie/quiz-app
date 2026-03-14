@@ -12,7 +12,7 @@ export default function DashboardHome() {
   return (
     <div className="max-w-5xl mx-auto mt-10 px-4 sm:px-6 lg:px-8">
       {/* Header with date/time and welcome */}
-      <UploadHeader userName={userName} />
+      <UploadHeader />
 
       {/* Upload area */}
       <UploadArea onUploadComplete={(data) => setQuestions(data)} />

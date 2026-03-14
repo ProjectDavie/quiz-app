@@ -29,7 +29,7 @@ export default function SignInPage() {
       }
 
       // Navigate to dashboard upload page
-      router.push("/(dashboard)/upload");
+      router.push("/upload");
     }, 800);
   };
 
