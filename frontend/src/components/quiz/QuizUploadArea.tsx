@@ -8,24 +8,44 @@ interface QuizUploadAreaProps {
 
 export default function QuizUploadArea({ setQuestions }: QuizUploadAreaProps) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function uploadPDF(e: any) {
     const file = e.target.files[0];
     if (!file) return;
 
     setLoading(true);
+    setError("");
 
-    const formData = new FormData();
-    formData.append("pdf", file);
+    try {
+      const formData = new FormData();
+      formData.append("pdf", file);
 
-    const res = await fetch("http://localhost:5000/upload", {
-      method: "POST",
-      body: formData,
-    });
+      const res = await fetch("http://localhost:5000/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-    const data = await res.json();
-    setQuestions(data.questions);
-    setLoading(false);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to upload PDF");
+      }
+
+      const data = await res.json();
+
+      // Make sure data.questions exists
+      if (!data.questions) {
+        throw new Error("No questions returned from server");
+      }
+
+      setQuestions(data.questions);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message);
+      setQuestions([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -47,6 +67,8 @@ export default function QuizUploadArea({ setQuestions }: QuizUploadAreaProps) {
           onChange={uploadPDF}
         />
       </label>
+
+      {error && <p className="text-red-500 text-sm mt-2 text-center">{error}</p>}
     </div>
   );
 }
