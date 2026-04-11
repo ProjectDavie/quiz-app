@@ -2,91 +2,72 @@
 
 import { useState } from "react";
 
-interface UploadAreaProps {
-  onUploadComplete: (questions: any[]) => void;
-}
-
-export default function UploadArea({ onUploadComplete }: UploadAreaProps) {
+export default function UploadArea() {
   const [loading, setLoading] = useState(false);
 
   async function uploadPDF(e: any) {
-    try {
-      const file = e.target.files?.[0];
-      if (!file) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-      setLoading(true);
+    setLoading(true);
 
-      const formData = new FormData();
-      formData.append("pdf", file);
+    const formData = new FormData();
+    formData.append("pdf", file);
 
-      const res = await fetch("http://localhost:5000/upload", {
-        method: "POST",
-        body: formData,
-      });
+    const res = await fetch("http://localhost:5000/upload", {
+      method: "POST",
+      body: formData,
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      console.log("📦 Backend response:", data);
-
-      // ❌ safety check
-      if (!data.pages || !data.questions) {
-        throw new Error("Invalid backend response");
-      }
-
-      // ✅ STORE EVERYTHING IN ONE PLACE
-      const payload = {
-        pages: data.pages,
-        questions: data.questions,
-      };
-
-      localStorage.setItem("pdf-data", JSON.stringify(payload));
-
-      // send questions to UI
-      onUploadComplete(data.questions);
-
-    } catch (err) {
-      console.error("Upload failed:", err);
-      alert("Upload failed. Check backend.");
-    } finally {
-      setLoading(false);
+    if (data.documentId) {
+      localStorage.setItem("documentId", data.documentId);
     }
+
+    setLoading(false);
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-8 flex flex-col items-center justify-center border border-gray-200 w-full">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
 
-      <label
-        htmlFor="pdf-upload"
-        className={`cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-10 w-full text-center hover:border-blue-500 hover:bg-blue-50 transition ${
-          loading ? "opacity-50 pointer-events-none" : ""
-        }`}
-      >
-        <svg
-          className="w-12 h-12 mb-3 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12v8m0 0l-4-4m4 4l4-4M12 4v8"
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-md p-10 text-center border">
+
+        {/* TITLE */}
+        <h1 className="text-3xl font-bold mb-2">
+          Upload Your Study Material
+        </h1>
+
+        <p className="text-gray-500 mb-8">
+          Upload a PDF and generate quizzes + flashcards instantly
+        </p>
+
+        {/* DROP AREA */}
+        <label className="cursor-pointer block border-2 border-dashed border-gray-300 rounded-2xl p-12 hover:border-blue-500 hover:bg-blue-50 transition">
+
+          <input
+            type="file"
+            accept="application/pdf"
+            onChange={uploadPDF}
+            className="hidden"
           />
-        </svg>
 
-        <span className="text-gray-600 font-medium">
-          {loading ? "Uploading..." : "Click to upload PDF"}
-        </span>
+          {loading ? (
+            <p className="text-blue-600 font-medium">Processing PDF...</p>
+          ) : (
+            <>
+              <div className="text-5xl mb-4">📄</div>
+              <p className="text-gray-600 font-medium">
+                Click to upload or drag & drop PDF
+              </p>
+              <p className="text-sm text-gray-400 mt-2">
+                Supports only PDF files
+              </p>
+            </>
+          )}
 
-        <input
-          id="pdf-upload"
-          type="file"
-          accept="application/pdf"
-          className="hidden"
-          onChange={uploadPDF}
-        />
-      </label>
+        </label>
+      </div>
     </div>
   );
 }

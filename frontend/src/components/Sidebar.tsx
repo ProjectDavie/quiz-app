@@ -18,6 +18,14 @@ export default function Menu() {
 
       <nav className="flex flex-col gap-2 p-2">
 
+        {/* Projects (optional future) */}
+        <Link
+          href="/projects"
+          className="p-3 rounded hover:bg-gray-800"
+        >
+          {collapsed ? "�" : "Projects"}
+        </Link>
+        
         {/* DASHBOARD / UPLOAD */}
         <Link
           href="/upload"
@@ -25,7 +33,7 @@ export default function Menu() {
         >
           {collapsed ? "📤" : "Upload PDF"}
         </Link>
-
+    
         {/* QUIZ */}
         <Link
           href="/quiz"
@@ -49,6 +57,8 @@ export default function Menu() {
         >
           {collapsed ? "🕓" : "History"}
         </Link>
+
+        
 
       </nav>
     </aside>

@@ -2,9 +2,19 @@ const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const pdfParse = require("pdf-parse");
+
+require("dotenv").config();
+const connectDB = require("./config/db");
+
 const { generateQuestions } = require("./utils/generateQuestions");
+const { generateFlashcards } = require("./utils/generateFlashcards");
 
 const app = express();
+
+/* ========================
+   CONNECT DATABASE
+======================== */
+connectDB();
 
 /* ========================
    MIDDLEWARE
@@ -12,6 +22,7 @@ const app = express();
 app.use(cors({
   origin: "http://localhost:3000",
 }));
+
 app.use(express.json());
 
 /* ========================
@@ -22,50 +33,54 @@ const upload = multer({
 });
 
 /* ========================
-   HEALTH CHECK (optional but useful)
+   HEALTH CHECK
 ======================== */
 app.get("/", (req, res) => {
   res.json({ status: "server running" });
 });
 
 /* ========================
-   UPLOAD + EXTRACT + PAGES + QUESTIONS
+   UPLOAD + PROCESS PDF
 ======================== */
 app.post("/upload", upload.single("pdf"), async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: "No PDF uploaded" });
-  }
-
   try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No PDF uploaded" });
+    }
+
     const pdfData = await pdfParse(req.file.buffer);
 
-    // 🔥 Split into pages
+    // Split pages
     const rawPages = pdfData.text.split(/\f/);
 
-    const pages = rawPages.map((text, index) => {
-      const cleaned = text.replace(/\s+/g, " ").trim();
+    const pages = rawPages
+      .map((text, index) => {
+        const cleaned = text.replace(/\s+/g, " ").trim();
 
-      return {
-        pageNumber: index + 1,
-        text: cleaned,
-      };
-    }).filter(p => p.text.length > 0);
+        return {
+          pageNumber: index + 1,
+          text: cleaned,
+        };
+      })
+      .filter((p) => p.text.length > 0);
 
     console.log("📄 Pages extracted:", pages.length);
 
-    // 🔥 Combine ALL pages into one text for question generation
-    const fullText = pages.map(p => p.text).join(" ");
+    // Combine text
+    const fullText = pages.map((p) => p.text).join(" ");
 
-    // 🔥 Generate questions
+    // Generate content
     const questions = generateQuestions(fullText);
+    const flashcards = generateFlashcards(fullText);
 
-    console.log("❓ Questions generated:", questions.length);
+    console.log("❓ Questions:", questions.length);
+    console.log("🧠 Flashcards:", flashcards.length);
 
-    // ✅ RETURN EVERYTHING FRONTEND NEEDS
     return res.json({
       success: true,
       pages,
       questions,
+      flashcards,
     });
 
   } catch (err) {
@@ -78,36 +93,9 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
 });
 
 /* ========================
-   GENERATE QUESTIONS (optional standalone route)
-======================== */
-app.post("/generate-questions", (req, res) => {
-  const { text } = req.body;
-
-  if (!text) {
-    return res.status(400).json({ error: "No text provided" });
-  }
-
-  try {
-    const questions = generateQuestions(text);
-
-    return res.json({
-      success: true,
-      questions,
-    });
-
-  } catch (err) {
-    console.error(err);
-
-    return res.status(500).json({
-      error: "Failed to generate questions",
-    });
-  }
-});
-
-/* ========================
    START SERVER
 ======================== */
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
