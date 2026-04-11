@@ -2,8 +2,13 @@
 
 import { Dispatch, SetStateAction, useState } from "react";
 
+interface Question {
+  question: string;
+  answer: string;
+}
+
 interface QuizUploadAreaProps {
-  setQuestions: Dispatch<SetStateAction<any[]>>;
+  setQuestions: Dispatch<SetStateAction<Question[]>>;
 }
 
 export default function QuizUploadArea({ setQuestions }: QuizUploadAreaProps) {
@@ -18,27 +23,43 @@ export default function QuizUploadArea({ setQuestions }: QuizUploadAreaProps) {
     setError("");
 
     try {
+      // 1️⃣ Upload PDF
       const formData = new FormData();
       formData.append("pdf", file);
 
-      const res = await fetch("http://localhost:5000/api/upload", {
+      const uploadRes = await fetch("http://localhost:5000/upload", {
         method: "POST",
         body: formData,
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to upload PDF");
+      if (!uploadRes.ok) throw new Error("Failed to upload PDF");
+      const uploadData = await uploadRes.json();
+      if (!uploadData.pages) throw new Error("No pages returned from server");
+
+      // 2️⃣ Generate questions for each page
+      const allQuestions: Question[] = [];
+
+      for (const page of uploadData.pages) {
+        const questionRes = await fetch("http://localhost:5000/generate-questions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: page.text }),
+        });
+
+        if (!questionRes.ok) throw new Error("Failed to generate questions");
+
+        const questionData = await questionRes.json();
+        if (!questionData.questions) continue;
+
+        questionData.questions.forEach((q: Question) =>
+          allQuestions.push({
+            question: `Page ${page.pageNumber}: ${q.question}`,
+            answer: q.answer,
+          })
+        );
       }
 
-      const data = await res.json();
-
-      // Make sure data.questions exists
-      if (!data.questions) {
-        throw new Error("No questions returned from server");
-      }
-
-      setQuestions(data.questions);
+      setQuestions(allQuestions);
     } catch (err: any) {
       console.error(err);
       setError(err.message);

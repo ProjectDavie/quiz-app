@@ -11,26 +11,30 @@ export default function Menu() {
       className={`h-full bg-gray-900 text-white transition-all duration-300
       ${collapsed ? "w-20" : "w-64"}`}
     >
+      {/* BRAND */}
       <div className="p-4 font-bold text-lg border-b border-gray-700">
         {collapsed ? "NQ" : "Notes → Quiz"}
       </div>
 
       <nav className="flex flex-col gap-2 p-2">
 
+        {/* DASHBOARD / UPLOAD */}
         <Link
-          href="/"
+          href="/upload"
           className="p-3 rounded hover:bg-gray-800"
         >
-          {collapsed ? "🏠" : "Dashboard"}
+          {collapsed ? "📤" : "Upload PDF"}
         </Link>
 
+        {/* QUIZ */}
         <Link
           href="/quiz"
           className="p-3 rounded hover:bg-gray-800"
         >
-          {collapsed ? "🧠" : "Generate Quiz"}
+          {collapsed ? "🧠" : "Quiz"}
         </Link>
 
+        {/* FLASHCARDS */}
         <Link
           href="/flashcards"
           className="p-3 rounded hover:bg-gray-800"
@@ -38,6 +42,7 @@ export default function Menu() {
           {collapsed ? "📚" : "Flashcards"}
         </Link>
 
+        {/* HISTORY (optional future) */}
         <Link
           href="/history"
           className="p-3 rounded hover:bg-gray-800"

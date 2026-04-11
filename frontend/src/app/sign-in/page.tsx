@@ -1,36 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function SignInPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [year, setYear] = useState<number>(new Date().getFullYear()); // safe for SSR
-
-  useEffect(() => {
-    // Update year on client to avoid hydration mismatch
-    setYear(new Date().getFullYear());
-  }, []);
+  const year = new Date().getFullYear();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
-      if (!email || !password) {
-        setError("Please enter both email and password.");
-        return;
-      }
-
-      // Navigate to dashboard upload page
-      router.push("/upload");
-    }, 800);
+    // No validation, no loading — just navigate
+    router.push("/upload");
   };
 
   return (
@@ -69,7 +52,6 @@ export default function SignInPage() {
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-black"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
               />
             </div>
 
@@ -80,18 +62,14 @@ export default function SignInPage() {
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-black"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
               />
             </div>
 
-            {error && <p className="text-red-600 text-sm">{error}</p>}
-
             <button
-              disabled={loading}
               type="submit"
               className="w-full bg-black text-white rounded-md py-2 hover:opacity-90 transition"
             >
-              {loading ? "Signing in..." : "Sign in"}
+              Sign in
             </button>
           </form>
 
