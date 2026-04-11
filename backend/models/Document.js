@@ -4,12 +4,11 @@ const router = express.Router();
 const Document = require("../models/Document");
 
 /* ========================
-   GET ALL DOCUMENTS
+   GET ALL PROJECTS
 ======================== */
 router.get("/", async (req, res) => {
   try {
-    const documents = await Document.find()
-      .sort({ createdAt: -1 });
+    const documents = await Document.find().sort({ createdAt: -1 });
 
     res.json({
       success: true,
@@ -17,7 +16,7 @@ router.get("/", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("❌ Fetch documents error:", err);
+    console.error(err);
 
     res.status(500).json({
       error: "Failed to fetch documents",

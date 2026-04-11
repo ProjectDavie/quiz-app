@@ -9,63 +9,45 @@ const Document = require("../models/Document");
 
 const router = express.Router();
 
-/* ========================
-   MULTER CONFIG
-======================== */
 const upload = multer({
   storage: multer.memoryStorage(),
 });
 
 /* ========================
-   UPLOAD PDF ROUTE
+   UPLOAD PDF
 ======================== */
 router.post("/upload", upload.single("pdf"), async (req, res) => {
   try {
-    // 1. Validate file
     if (!req.file) {
-      return res.status(400).json({
-        error: "No PDF uploaded",
-      });
+      return res.status(400).json({ error: "No file uploaded" });
     }
 
-    console.log("📄 Uploaded:", req.file.originalname);
+    console.log("📄 Upload:", req.file.originalname);
 
-    // 2. Extract text from PDF
     const text = await extractText(req.file.buffer);
 
-    // 3. Generate learning content
     const questions = generateQuestions(text);
     const flashcards = generateFlashcards(text);
 
-    console.log("❓ Questions generated:", questions.length);
-    console.log("🧠 Flashcards generated:", flashcards.length);
-
-    // 4. Save EVERYTHING to MongoDB
-    const savedDocument = await Document.create({
+    const saved = await Document.create({
       title: req.file.originalname,
-      pages: [
-        {
-          pageNumber: 1,
-          text,
-        },
-      ],
+      pages: [{ pageNumber: 1, text }],
       questions,
       flashcards,
     });
 
-    console.log("💾 Saved document:", savedDocument._id);
+    console.log("💾 Saved:", saved._id);
 
-    // 5. Return ONLY documentId (clean API design)
-    return res.json({
+    res.json({
       success: true,
-      documentId: savedDocument._id,
+      documentId: saved._id,
     });
 
-  } catch (error) {
-    console.error("❌ Upload error:", error);
+  } catch (err) {
+    console.error("❌ Upload error:", err);
 
-    return res.status(500).json({
-      error: "Failed to process PDF",
+    res.status(500).json({
+      error: "Upload failed",
     });
   }
 });
