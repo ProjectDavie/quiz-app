@@ -1,27 +1,41 @@
-const express = require("express");
-const router = express.Router();
+const mongoose = require("mongoose");
 
-const Document = require("../models/Document");
+const PageSchema = new mongoose.Schema(
+  {
+    pageNumber: {
+      type: Number,
+      required: true,
+    },
+    text: {
+      type: String,
+      required: true,
+    },
+  },
+  { _id: false }
+);
 
-/* ========================
-   GET ALL PROJECTS
-======================== */
-router.get("/", async (req, res) => {
-  try {
-    const documents = await Document.find().sort({ createdAt: -1 });
-
-    res.json({
-      success: true,
-      documents,
-    });
-
-  } catch (err) {
-    console.error(err);
-
-    res.status(500).json({
-      error: "Failed to fetch documents",
-    });
+const DocumentSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+    },
+    pages: {
+      type: [PageSchema],
+      default: [],
+    },
+    questions: {
+      type: Array,
+      default: [],
+    },
+    flashcards: {
+      type: Array,
+      default: [],
+    },
+  },
+  {
+    timestamps: true,
   }
-});
+);
 
-module.exports = router;
+module.exports = mongoose.model("Document", DocumentSchema);
