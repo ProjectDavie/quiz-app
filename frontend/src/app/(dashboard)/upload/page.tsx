@@ -20,28 +20,44 @@ export default function DashboardHome() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto mt-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white text-black">
 
-      <UploadHeader />
+      {/* HEADER */}
+      <div className="p-8 border-b">
+        <UploadHeader />
+      </div>
 
-      <UploadArea onUploadComplete={handleUpload} />
+      {/* UPLOAD AREA */}
+      <div className="p-8">
+        <div className="border bg-white shadow-sm rounded-xl p-6">
+          <UploadArea onUploadComplete={handleUpload} />
+        </div>
+      </div>
 
+      {/* LOADER */}
       {questions.length > 0 && (
-        <UploadLoader questionsCount={questions.length} />
+        <div className="px-8">
+          <UploadLoader questionsCount={questions.length} />
+        </div>
       )}
 
-      {/* QUESTIONS PREVIEW */}
+      {/* QUESTIONS */}
       {questions.length > 0 && (
-        <div className="mt-10 bg-white p-6 rounded-2xl shadow-md">
-          <h2 className="text-xl font-bold mb-4">
+        <div className="p-8 border-t">
+
+          <h2 className="text-2xl font-bold mb-6">
             Generated Questions ({questions.length})
           </h2>
 
-          <div className="space-y-4">
-            {questions.map((q, index) => (
-              <div key={index} className="border p-4 rounded-lg bg-gray-50">
+          <div className="grid gap-4 md:grid-cols-2">
+            {questions.map((q, i) => (
+              <div
+                key={i}
+                className="border bg-white shadow-sm rounded-xl p-5
+                           hover:shadow-md transition"
+              >
                 <p className="font-semibold">
-                  Q{index + 1}: {q.question}
+                  Q{i + 1}: {q.question}
                 </p>
                 <p className="text-gray-600 mt-2">
                   Answer: {q.answer}
@@ -50,15 +66,16 @@ export default function DashboardHome() {
             ))}
           </div>
 
-          {/* 🔥 BUTTON TO QUIZ PAGE */}
           <button
             onClick={goToQuiz}
-            className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition"
+            className="mt-8 bg-black text-white px-6 py-3 rounded-xl
+                       shadow-sm hover:shadow-md transition"
           >
             Start Quiz 🚀
           </button>
         </div>
       )}
+
     </div>
   );
 }

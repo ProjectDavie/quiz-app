@@ -24,4 +24,41 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/:id", async (req, res) => {
+  try {
+    const doc = await Document.findById(req.params.id);
+
+    if (!doc) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+
+    res.json({ success: true, document: doc });
+
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch document" });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    const deleted = await Document.findByIdAndDelete(req.params.id);
+
+    if (!deleted) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+
+    res.json({
+      success: true,
+      message: "Document deleted permanently",
+    });
+
+  } catch (err) {
+    console.error("Delete error:", err);
+
+    res.status(500).json({
+      error: "Failed to delete document",
+    });
+  }
+});
+
 module.exports = router;
