@@ -1,66 +1,114 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSidebar } from "../contexts/SidebarContext";
+
+import {
+  LayoutGrid,
+  Upload,
+  Brain,
+  BookOpen,
+  Clock,
+  LogOut,
+} from "lucide-react";
 
 export default function Menu() {
   const { collapsed } = useSidebar();
+  const router = useRouter();
+
+  function signOut() {
+    // clear session if you add auth later
+    localStorage.clear();
+    router.push("/sign-in");
+  }
 
   return (
     <aside
-      className={`h-full bg-gray-900 text-white transition-all duration-300
+      className={`h-full bg-[#0f172a] text-white border-r border-gray-800 transition-all duration-300 flex flex-col
       ${collapsed ? "w-20" : "w-64"}`}
     >
       {/* BRAND */}
-      <div className="p-4 font-bold text-lg border-b border-gray-700">
-        {collapsed ? "NQ" : "Notes → Quiz"}
+      <div className="h-16 flex items-center px-4 border-b border-gray-800">
+        <span className="font-semibold text-sm tracking-wide">
+          {collapsed ? "NQ" : "Notes → Quiz"}
+        </span>
       </div>
 
-      <nav className="flex flex-col gap-2 p-2">
+      {/* NAV */}
+      <nav className="flex-1 p-2 space-y-1">
 
-        {/* Projects (optional future) */}
-        <Link
+        <NavItem
           href="/projects"
-          className="p-3 rounded hover:bg-gray-800"
-        >
-          {collapsed ? "�" : "Projects"}
-        </Link>
-        
-        {/* DASHBOARD / UPLOAD */}
-        <Link
+          icon={<LayoutGrid size={18} />}
+          label="Projects"
+          collapsed={collapsed}
+        />
+
+        <NavItem
           href="/upload"
-          className="p-3 rounded hover:bg-gray-800"
-        >
-          {collapsed ? "📤" : "Upload PDF"}
-        </Link>
-    
-        {/* QUIZ */}
-        <Link
+          icon={<Upload size={18} />}
+          label="Upload PDF"
+          collapsed={collapsed}
+        />
+
+        <NavItem
           href="/quiz"
-          className="p-3 rounded hover:bg-gray-800"
-        >
-          {collapsed ? "🧠" : "Quiz"}
-        </Link>
+          icon={<Brain size={18} />}
+          label="Quiz"
+          collapsed={collapsed}
+        />
 
-        {/* FLASHCARDS */}
-        <Link
+        <NavItem
           href="/flashcards"
-          className="p-3 rounded hover:bg-gray-800"
-        >
-          {collapsed ? "📚" : "Flashcards"}
-        </Link>
+          icon={<BookOpen size={18} />}
+          label="Flashcards"
+          collapsed={collapsed}
+        />
 
-        {/* HISTORY (optional future) */}
-        <Link
+        <NavItem
           href="/history"
-          className="p-3 rounded hover:bg-gray-800"
-        >
-          {collapsed ? "🕓" : "History"}
-        </Link>
-
-        
-
+          icon={<Clock size={18} />}
+          label="History"
+          collapsed={collapsed}
+        />
       </nav>
+
+      {/* SIGN OUT */}
+      <div className="p-2 border-t border-gray-800">
+        <button
+          onClick={signOut}
+          className="flex items-center gap-3 w-full p-3 rounded-lg text-red-400 hover:bg-red-500/10 transition"
+        >
+          <LogOut size={18} />
+          {!collapsed && <span>Sign Out</span>}
+        </button>
+      </div>
     </aside>
+  );
+}
+
+/* ========================
+   NAV ITEM COMPONENT
+======================== */
+function NavItem({
+  href,
+  icon,
+  label,
+  collapsed,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+  collapsed: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/5 transition"
+    >
+      <span className="text-gray-400">{icon}</span>
+      {!collapsed && <span>{label}</span>}
+    </Link>
   );
 }
