@@ -20,6 +20,11 @@ const DocumentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     pages: {
       type: [PageSchema],
       default: [],

@@ -13,6 +13,17 @@ const upload = multer({
   storage: multer.memoryStorage(),
 });
 
+function createSlug(title) {
+  return title
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\.[^/.]+$/, "")
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
 /* ========================
    UPLOAD PDF
 ======================== */
@@ -29,8 +40,17 @@ router.post("/upload", upload.single("pdf"), async (req, res) => {
     const questions = generateQuestions(text);
     const flashcards = generateFlashcards(text);
 
+    const slugBase = createSlug(req.file.originalname);
+    let slug = slugBase || "project";
+    let suffix = 1;
+
+    while (await Document.exists({ slug })) {
+      slug = `${slugBase}-${suffix++}`;
+    }
+
     const saved = await Document.create({
       title: req.file.originalname,
+      slug,
       pages: [{ pageNumber: 1, text }],
       questions,
       flashcards,

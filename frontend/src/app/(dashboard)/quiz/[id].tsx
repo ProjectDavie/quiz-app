@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 
 export default function QuizPage() {
-  const { id } = useParams();
+  const { slug } = useParams();
   const router = useRouter();
 
   const [doc, setDoc] = useState<any>(null);
@@ -12,7 +12,7 @@ export default function QuizPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/documents/${id}`)
+    fetch(`http://localhost:5000/documents/${slug}`)
       .then((res) => res.json())
       .then((data) => {
         setDoc(data.document);

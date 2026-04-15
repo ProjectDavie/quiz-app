@@ -20,59 +20,82 @@ export default function DashboardHome() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="min-h-screen bg-white text-black px-6 md:px-12 py-10">
 
       {/* HEADER */}
-      <div className="p-8 border-b">
+      <div className="max-w-5xl mx-auto mb-12">
         <UploadHeader />
       </div>
 
-      {/* UPLOAD AREA */}
-      <div className="p-8">
-        <div className="border bg-white shadow-sm rounded-xl p-6">
+      {/* UPLOAD SECTION */}
+      <div className="max-w-3xl mx-auto mb-16">
+
+        <div className="bg-white shadow-lg rounded-2xl p-10 text-center">
+
+          <h1 className="text-3xl font-bold tracking-tight mb-2">
+            Upload Document
+          </h1>
+
+          <p className="text-gray-500 mb-8">
+            Generate quizzes and flashcards instantly from your PDF
+          </p>
+
           <UploadArea onUploadComplete={handleUpload} />
+
         </div>
       </div>
 
-      {/* LOADER */}
+      {/* LOADING STATE */}
       {questions.length > 0 && (
-        <div className="px-8">
+        <div className="max-w-4xl mx-auto mb-10">
           <UploadLoader questionsCount={questions.length} />
         </div>
       )}
 
-      {/* QUESTIONS */}
+      {/* RESULTS */}
       {questions.length > 0 && (
-        <div className="p-8 border-t">
+        <div className="max-w-5xl mx-auto">
 
-          <h2 className="text-2xl font-bold mb-6">
-            Generated Questions ({questions.length})
-          </h2>
+          {/* TITLE */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Generated Questions
+            </h2>
+            <p className="text-gray-500 text-sm">
+              {questions.length} questions created from your document
+            </p>
+          </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          {/* QUESTION GRID */}
+          <div className="grid md:grid-cols-2 gap-6">
+
             {questions.map((q, i) => (
               <div
                 key={i}
-                className="border bg-white shadow-sm rounded-xl p-5
-                           hover:shadow-md transition"
+                className="bg-white shadow-md rounded-2xl p-6 hover:shadow-lg transition"
               >
-                <p className="font-semibold">
-                  Q{i + 1}: {q.question}
+                <p className="font-semibold text-lg leading-snug">
+                  {q.question}
                 </p>
-                <p className="text-gray-600 mt-2">
-                  Answer: {q.answer}
+
+                <p className="text-gray-500 mt-3 text-sm leading-relaxed">
+                  {q.answer}
                 </p>
               </div>
             ))}
+
           </div>
 
-          <button
-            onClick={goToQuiz}
-            className="mt-8 bg-black text-white px-6 py-3 rounded-xl
-                       shadow-sm hover:shadow-md transition"
-          >
-            Start Quiz 🚀
-          </button>
+          {/* CTA */}
+          <div className="mt-12 text-center">
+            <button
+              onClick={goToQuiz}
+              className="bg-black text-white px-8 py-4 rounded-2xl text-sm font-medium hover:opacity-90 transition"
+            >
+              Start Quiz →
+            </button>
+          </div>
+
         </div>
       )}
 

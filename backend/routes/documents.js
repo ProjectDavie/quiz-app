@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const router = express.Router();
 
 const Document = require("../models/Document");
@@ -24,9 +25,18 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:identifier", async (req, res) => {
   try {
-    const doc = await Document.findById(req.params.id);
+    const { identifier } = req.params;
+    let doc = null;
+
+    if (mongoose.isValidObjectId(identifier)) {
+      doc = await Document.findById(identifier);
+    }
+
+    if (!doc) {
+      doc = await Document.findOne({ slug: identifier });
+    }
 
     if (!doc) {
       return res.status(404).json({ error: "Document not found" });

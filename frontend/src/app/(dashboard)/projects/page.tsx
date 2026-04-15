@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function ProjectsPage() {
   const [docs, setDocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     fetch("http://localhost:5000/documents")
@@ -85,10 +87,7 @@ export default function ProjectsPage() {
 
               {/* START QUIZ */}
               <button
-                onClick={() => {
-                  localStorage.setItem("active-quiz", JSON.stringify(doc));
-                  window.location.href = "/quiz";
-                }}
+                onClick={() => router.push(`/quiz/${doc.slug || doc._id}`)}
                 className="bg-black text-white py-2 rounded-lg hover:bg-gray-800 transition"
               >
                 Start Quiz
@@ -96,10 +95,7 @@ export default function ProjectsPage() {
 
               {/* FLASHCARDS */}
               <button
-                onClick={() => {
-                  localStorage.setItem("active-quiz", JSON.stringify(doc));
-                  window.location.href = "/flashcards";
-                }}
+                onClick={() => router.push(`/flashcards/${doc.slug || doc._id}`)}
                 className="border border-black py-2 rounded-lg hover:bg-black hover:text-white transition"
               >
                 Start Flashcards
