@@ -8,6 +8,9 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  /* ========================
+     FETCH PROJECTS
+  ======================== */
   useEffect(() => {
     fetch("http://localhost:5000/documents")
       .then((res) => res.json())
@@ -15,10 +18,15 @@ export default function ProjectsPage() {
         setDocs(data.documents || []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error("Fetch error:", err);
+        setLoading(false);
+      });
   }, []);
 
-  // DELETE PROJECT
+  /* ========================
+     DELETE PROJECT
+  ======================== */
   async function deleteProject(id: string) {
     const confirmDelete = confirm("Delete this project permanently?");
     if (!confirmDelete) return;
@@ -28,7 +36,6 @@ export default function ProjectsPage() {
         method: "DELETE",
       });
 
-      // remove from UI instantly
       setDocs((prev) => prev.filter((d) => d._id !== id));
 
     } catch (err) {
@@ -36,83 +43,127 @@ export default function ProjectsPage() {
     }
   }
 
+  /* ========================
+     NAVIGATION
+  ======================== */
+  const openQuiz = (id: string) => {
+    router.push(`/quiz/${id}`);
+  };
+
+  const openFlashcards = (id: string) => {
+    router.push(`/flashcards/${id}`);
+  };
+
+  const goToUpload = () => {
+    router.push("/");
+  };
+
   return (
-    <div className="min-h-screen bg-white text-black p-8">
+    <div className="min-h-screen bg-white text-black px-6 md:px-12 py-10">
 
       {/* HEADER */}
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold">Projects</h1>
-        <p className="text-gray-500 mt-1">
-          Manage your study documents
-        </p>
+      <div className="max-w-6xl mx-auto flex justify-between items-center mb-12">
+
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Projects
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Your uploaded study materials
+          </p>
+        </div>
+
+        <button
+          onClick={goToUpload}
+          className="bg-black text-white px-6 py-3 rounded-2xl text-sm font-medium hover:opacity-90 transition"
+        >
+          Upload
+        </button>
+
       </div>
 
-      {/* LOADING */}
-      {loading && (
-        <div className="text-gray-500">Loading projects...</div>
-      )}
+      {/* CONTENT */}
+      <div className="max-w-6xl mx-auto">
 
-      {/* EMPTY */}
-      {!loading && docs.length === 0 && (
-        <div className="border shadow-sm rounded-xl p-10 text-center">
-          <p className="font-semibold text-lg">No projects yet</p>
-        </div>
-      )}
+        {/* LOADING */}
+        {loading && (
+          <p className="text-gray-500">Loading projects...</p>
+        )}
 
-      {/* GRID */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-
-        {docs.map((doc) => (
-          <div
-            key={doc._id}
-            className="border shadow-sm rounded-xl p-6 hover:shadow-md transition relative"
-          >
-
-            {/* TITLE */}
-            <h2 className="font-bold text-lg">{doc.title}</h2>
-
-            <p className="text-gray-500 text-sm mt-1">
-              {new Date(doc.createdAt).toLocaleString()}
+        {/* EMPTY STATE */}
+        {!loading && docs.length === 0 && (
+          <div className="bg-white shadow-lg rounded-2xl p-12 text-center">
+            <h2 className="text-xl font-semibold">
+              No projects yet
+            </h2>
+            <p className="text-gray-500 mt-2">
+              Upload a PDF to generate quizzes and flashcards
             </p>
 
-            {/* STATS */}
-            <div className="mt-4 text-sm space-y-1">
-              <p>📄 Pages: {doc.pages?.length || 1}</p>
-              <p>❓ Questions: {doc.questions?.length || 0}</p>
-              <p>🧠 Flashcards: {doc.flashcards?.length || 0}</p>
-            </div>
-
-            {/* ACTION BUTTONS */}
-            <div className="mt-6 flex flex-col gap-2">
-
-              {/* START QUIZ */}
-              <button
-                onClick={() => router.push(`/quiz/${doc.slug || doc._id}`)}
-                className="bg-black text-white py-2 rounded-lg hover:bg-gray-800 transition"
-              >
-                Start Quiz
-              </button>
-
-              {/* FLASHCARDS */}
-              <button
-                onClick={() => router.push(`/flashcards/${doc.slug || doc._id}`)}
-                className="border border-black py-2 rounded-lg hover:bg-black hover:text-white transition"
-              >
-                Start Flashcards
-              </button>
-
-              {/* DELETE */}
-              <button
-                onClick={() => deleteProject(doc._id)}
-                className="text-red-600 border border-red-600 py-2 rounded-lg hover:bg-red-600 hover:text-white transition"
-              >
-                Delete Project
-              </button>
-
-            </div>
-
+            <button
+              onClick={goToUpload}
+              className="mt-6 bg-black text-white px-6 py-3 rounded-xl text-sm hover:opacity-90"
+            >
+              Upload Document
+            </button>
           </div>
-        ))}
+        )}
+
+        {/* PROJECT GRID */}
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+
+          {docs.map((doc) => (
+            <div
+              key={doc._id}
+              className="bg-white shadow-md rounded-2xl p-6 hover:shadow-lg transition"
+            >
+
+              {/* TITLE */}
+              <h2 className="font-semibold text-lg leading-tight">
+                {doc.title}
+              </h2>
+
+              <p className="text-gray-400 text-xs mt-1">
+                {new Date(doc.createdAt).toLocaleString()}
+              </p>
+
+              {/* STATS */}
+              <div className="mt-5 text-sm text-gray-600 space-y-1">
+                <p>Pages: {doc.pages?.length || 1}</p>
+                <p>Questions: {doc.questions?.length || 0}</p>
+                <p>Flashcards: {doc.flashcards?.length || 0}</p>
+              </div>
+
+              {/* ACTIONS */}
+              <div className="mt-6 space-y-2">
+
+                <button
+                  onClick={() => openQuiz(doc._id)}
+                  className="w-full bg-black text-white py-2.5 rounded-xl text-sm font-medium hover:opacity-90 transition"
+                >
+                  Start Quiz
+                </button>
+
+                <button
+                  onClick={() => openFlashcards(doc._id)}
+                  className="w-full bg-gray-100 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-200 transition"
+                >
+                  Flashcards
+                </button>
+
+                <button
+                  onClick={() => deleteProject(doc._id)}
+                  className="w-full text-red-600 text-sm py-2 rounded-xl hover:bg-red-50 transition"
+                >
+                  Delete
+                </button>
+
+              </div>
+
+            </div>
+          ))}
+
+        </div>
 
       </div>
     </div>

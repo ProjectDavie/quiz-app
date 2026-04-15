@@ -71,4 +71,18 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+router.get("/:id", async (req, res) => {
+  try {
+    const doc = await Document.findById(req.params.id);
+
+    res.json({
+      success: true,
+      document: doc,
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch document" });
+  }
+});
+
 module.exports = router;
