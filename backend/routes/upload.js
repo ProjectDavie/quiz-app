@@ -1,11 +1,14 @@
 const express = require("express");
 const multer = require("multer");
+const pdfParse = require("pdf-parse");
 
-const extractText = require("../utils/extractText");
+const Document = require("../models/Document");
+
 const { generateQuestions } = require("../utils/generateQuestions");
 const { generateFlashcards } = require("../utils/generateFlashcards");
 
-const Document = require("../models/Document");
+const { generateAIQuestions } = require("../utils/ai/generateAIQuestions");
+const { generateAIFlashcards } = require("../utils/ai/generateAIFlashcards");
 
 const router = express.Router();
 
@@ -13,61 +16,84 @@ const upload = multer({
   storage: multer.memoryStorage(),
 });
 
-function createSlug(title) {
-  return title
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\.[^/.]+$/, "")
-    .replace(/[^\w\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
-}
-
-/* ========================
-   UPLOAD PDF
-======================== */
+/**
+ * UPLOAD PDF
+ */
 router.post("/upload", upload.single("pdf"), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
+      return res.status(400).json({ error: "No PDF uploaded" });
     }
 
-    console.log("📄 Upload:", req.file.originalname);
+    const aiMode = req.body.aiMode === "true";
 
-    const text = await extractText(req.file.buffer);
+    const pdfData = await pdfParse(req.file.buffer);
 
-    const questions = generateQuestions(text);
-    const flashcards = generateFlashcards(text);
+    // split pages
+    const rawPages = pdfData.text.split(/\f/);
 
-    const slugBase = createSlug(req.file.originalname);
-    let slug = slugBase || "project";
-    let suffix = 1;
+    const pages = rawPages
+      .map((text, index) => ({
+        pageNumber: index + 1,
+        text: text.replace(/\s+/g, " ").trim(),
+      }))
+      .filter((p) => p.text.length > 0);
 
-    while (await Document.exists({ slug })) {
-      slug = `${slugBase}-${suffix++}`;
+    let questions = [];
+    let flashcards = [];
+
+    // =========================
+    // 🔵 AI MODE (PAGE BASED)
+    // =========================
+    if (aiMode) {
+      for (const page of pages) {
+        const q = await generateAIQuestions(
+          page.text,
+          page.pageNumber
+        );
+
+        const f = await generateAIFlashcards(
+          page.text,
+          page.pageNumber
+        );
+
+        questions.push(...q);
+        flashcards.push(...f);
+      }
     }
 
-    const saved = await Document.create({
+    // =========================
+    // 🟢 OFFLINE MODE
+    // =========================
+    else {
+      const fullText = pages.map((p) => p.text).join(" ");
+
+      questions = generateQuestions(fullText);
+      flashcards = generateFlashcards(fullText);
+    }
+
+    // =========================
+    // SAVE TO DATABASE
+    // =========================
+    const doc = await Document.create({
       title: req.file.originalname,
-      slug,
-      pages: [{ pageNumber: 1, text }],
+      mode: aiMode ? "ai" : "offline",
+      pages,
       questions,
       flashcards,
     });
 
-    console.log("💾 Saved:", saved._id);
-
-    res.json({
+    return res.json({
       success: true,
-      documentId: saved._id,
+      documentId: doc._id,
+      questions,
+      flashcards,
+      mode: doc.mode,
     });
-
   } catch (err) {
-    console.error("❌ Upload error:", err);
-
-    res.status(500).json({
-      error: "Upload failed",
+    console.error("UPLOAD ERROR:", err);
+    return res.status(500).json({
+      error: "Failed to process PDF",
     });
   }
 });

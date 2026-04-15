@@ -1,62 +1,93 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
-export default function QuizPage({ params }: any) {
-  const { id } = use(params);
+export default function QuizPage() {
+  const params = useParams();
+  const id = params?.id;
 
   const [doc, setDoc] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/documents/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("DOC:", data);
+    async function fetchDoc() {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/documents/${id}`
+        );
+        const data = await res.json();
         setDoc(data.document);
-      })
-      .catch((err) => console.error(err));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (id) fetchDoc();
   }, [id]);
+
+  if (loading) {
+    return (
+      <div className="p-10 text-gray-500">Loading quiz...</div>
+    );
+  }
 
   if (!doc) {
     return (
-      <div className="min-h-screen bg-white text-black flex items-center justify-center">
-        Loading...
+      <div className="p-10 text-gray-500">
+        Document not found
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white text-black px-8 py-10">
+    <div className="min-h-screen bg-white text-black px-6 md:px-12 py-10">
 
-      {/* Title */}
-      <h1 className="text-3xl font-bold mb-8">
-        {doc.title}
-      </h1>
+      {/* HEADER */}
+      <div className="max-w-4xl mx-auto mb-10">
+        <h1 className="text-2xl font-bold">
+          Quiz: {doc.title}
+        </h1>
 
-      {/* No questions */}
-      {doc.questions?.length === 0 && (
-        <p className="text-gray-600">
-          No questions found
+        <p className="text-gray-500 text-sm mt-1">
+          Mode: {doc.mode === "ai" ? "AI Generated" : "Offline"}
         </p>
-      )}
+      </div>
 
-      {/* Questions */}
-      <div className="space-y-4">
+      {/* QUESTIONS */}
+      <div className="max-w-4xl mx-auto space-y-6">
+
         {doc.questions?.map((q: any, i: number) => (
           <div
             key={i}
-            className="border border-gray-300 rounded-xl p-5 bg-white shadow-sm"
+            className="bg-white border shadow-sm rounded-2xl p-6"
           >
-            <p className="font-semibold text-lg mb-2">
-              Q{i + 1}: {q.question}
+
+            {/* QUESTION */}
+            <p className="font-semibold text-lg">
+              Q{i + 1}. {q.question}
             </p>
-            <p className="text-gray-700">
+
+            {/* ANSWER */}
+            <p className="text-gray-600 mt-3 text-sm leading-relaxed">
               {q.answer}
             </p>
+
+            {/* 📍 PAGE REFERENCE BADGE */}
+            {q.page && (
+              <div className="mt-4">
+                <span className="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-black text-white">
+                  📄 Page {q.page}
+                </span>
+              </div>
+            )}
+
           </div>
         ))}
-      </div>
 
+      </div>
     </div>
   );
 }
