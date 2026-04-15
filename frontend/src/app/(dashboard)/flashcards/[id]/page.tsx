@@ -13,22 +13,38 @@ export default function FlashcardsPage({ params }: any) {
       .then((data) => setDoc(data.document));
   }, [id]);
 
-  if (!doc) return <p className="p-8">Loading...</p>;
+  if (!doc) {
+    return (
+      <div className="min-h-screen bg-white text-black flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   return (
-    <div className="p-8">
-
-      <h1 className="text-2xl font-bold mb-6">
+    <div className="min-h-screen bg-white text-black px-8 py-10">
+      
+      {/* Title */}
+      <h1 className="text-3xl font-bold mb-8">
         {doc.title}
       </h1>
 
-      {doc.flashcards.map((f: any, i: number) => (
-        <div key={i} className="mb-4 border p-4 rounded-xl">
-          <p className="font-semibold">{f.front}</p>
-          <p className="text-gray-600">{f.back}</p>
-        </div>
-      ))}
-
+      {/* Flashcards */}
+      <div className="space-y-4">
+        {doc.flashcards.map((f: any, i: number) => (
+          <div
+            key={i}
+            className="border border-gray-300 rounded-xl p-5 bg-white shadow-sm"
+          >
+            <p className="font-semibold text-lg mb-2">
+              {f.front}
+            </p>
+            <p className="text-gray-700">
+              {f.back}
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

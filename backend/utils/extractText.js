@@ -1,19 +1,35 @@
 const pdf = require("pdf-parse");
 
 async function extractText(buffer) {
-
   const data = await pdf(buffer);
 
-  let text = data.text;
+  const pages = data.text
+    .split("\n\x0c") // pdf-parse page separator (important)
+    .map((pageText, index) => {
+      let text = pageText;
 
-  /* Clean text */
+      // --- CLEANING ---
+      text = text
+        .replace(/-\n/g, "")              // fix broken words
+        .replace(/\s+/g, " ")             // normalize spacing
+        .replace(/\n+/g, "\n")            // reduce line noise
+        .trim();
 
-  text = text
-    .replace(/\s+/g, " ")
-    .replace(/\n\s*\n/g, "\n")
-    .trim();
+      return {
+        page: index + 1,
+        text,
+      };
+    });
 
-  return text;
+  // --- BUILD STRUCTURE-AWARE FULL TEXT ---
+  const fullText = pages
+    .map(p => `PAGE ${p.page}\n${p.text}`)
+    .join("\n\n");
+
+  return {
+    pages,
+    fullText,
+  };
 }
 
 module.exports = extractText;
