@@ -1,45 +1,93 @@
-// backend/utils/generateTopics.js
+function isHeading(line) {
+  const trimmed = line.trim();
+
+  if (!trimmed) return false;
+
+  // ALL CAPS heading
+  if (trimmed === trimmed.toUpperCase() && trimmed.length < 80) {
+    return true;
+  }
+
+  // Ends with colon (common in notes)
+  if (trimmed.endsWith(":")) {
+    return true;
+  }
+
+  // Short strong title
+  if (trimmed.split(" ").length <= 6 && trimmed.length < 60) {
+    return true;
+  }
+
+  return false;
+}
+
+function cleanLine(line) {
+  return line
+    .replace(/\s+/g, " ")
+    .replace(/[•\-–]/g, "")
+    .trim();
+}
 
 function generateTopics(pages) {
   const topics = [];
 
+  let currentTopic = null;
+
   pages.forEach((page) => {
-    const lines = page.text.split("\n").map((l) => l.trim()).filter(Boolean);
-    let currentTopic = null;
+    const lines = page.text
+      .split("\n")
+      .map(cleanLine)
+      .filter(Boolean);
 
     lines.forEach((line) => {
-      // Detect heading: all caps or ending with colon
-      if (line === line.toUpperCase() || line.endsWith(":")) {
-        // Save previous topic
-        if (currentTopic) topics.push(currentTopic);
+      const heading = isHeading(line);
 
-        currentTopic = {
-          topicName: line.replace(/:$/, "").trim(),
-          pageNumbers: [page.pageNumber],
-          text: "",
-        };
-      } else {
-        if (!currentTopic) {
-          currentTopic = {
-            topicName: `Page ${page.pageNumber} - Untitled`,
-            pageNumbers: [page.pageNumber],
-            text: "",
-          };
+      // START NEW TOPIC
+      if (heading) {
+        if (currentTopic) {
+          topics.push(currentTopic);
         }
 
-        currentTopic.text += line + " ";
+        currentTopic = {
+          topic: line.replace(/:$/, ""),
+          pageNumbers: [page.pageNumber],
+          content: "",
+          type: "section",
+        };
+
+        return;
       }
+
+      // INIT IF NULL
+      if (!currentTopic) {
+        currentTopic = {
+          topic: `Page ${page.pageNumber} - General`,
+          pageNumbers: [page.pageNumber],
+          content: "",
+          type: "section",
+        };
+      }
+
+      // APPEND CONTENT
+      currentTopic.content += line + " ";
     });
 
-    if (currentTopic) topics.push(currentTopic);
+    // ensure page tracking
+    if (currentTopic && !currentTopic.pageNumbers.includes(page.pageNumber)) {
+      currentTopic.pageNumbers.push(page.pageNumber);
+    }
   });
 
-  // Clean topic text
-  topics.forEach((t) => {
-    t.text = t.text.trim();
-  });
+  // finalize last topic
+  if (currentTopic) {
+    topics.push(currentTopic);
+  }
 
-  return topics;
+  // CLEAN OUTPUT
+  return topics.map((t) => ({
+    ...t,
+    content: t.content.trim(),
+  }));
 }
 
 module.exports = { generateTopics };
