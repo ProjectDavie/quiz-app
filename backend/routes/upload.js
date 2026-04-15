@@ -6,6 +6,7 @@ const Document = require("../models/Document");
 
 const { generateQuestions } = require("../utils/generateQuestions");
 const { generateFlashcards } = require("../utils/generateFlashcards");
+const { generateTopics } = require("../utils/generateTopics");
 
 const { generateAIQuestions } = require("../utils/ai/generateAIQuestions");
 const { generateAIFlashcards } = require("../utils/ai/generateAIFlashcards");
@@ -39,6 +40,10 @@ router.post("/upload", upload.single("pdf"), async (req, res) => {
       }))
       .filter((p) => p.text.length > 0);
 
+    console.log("TYPE OF PAGES:", typeof pages);
+    console.log("IS ARRAY:", Array.isArray(pages));
+    console.log("PAGES SAMPLE:", pages?.[0]);
+
     let questions = [];
     let flashcards = [];
 
@@ -66,10 +71,9 @@ router.post("/upload", upload.single("pdf"), async (req, res) => {
     // 🟢 OFFLINE MODE
     // =========================
     else {
-      const fullText = pages.map((p) => p.text).join(" ");
-
-      questions = generateQuestions(fullText);
-      flashcards = generateFlashcards(fullText);
+      questions = generateQuestions(pages);
+      flashcards = generateFlashcards(pages);
+      const topics = generateTopics(pages);
     }
 
     // =========================

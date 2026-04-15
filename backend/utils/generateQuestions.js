@@ -1,70 +1,66 @@
-function splitSentences(text) {
-  return text
-    .replace(/\s+/g, " ")
-    .split(/(?<=[.?!])\s+/)
-    .map(s => s.trim())
-    .filter(s => s.length > 10);
+function normalizePages(input) {
+  if (!input) return [];
+
+  if (Array.isArray(input)) return input;
+
+  if (input.pages && Array.isArray(input.pages)) return input.pages;
+
+  return [];
 }
 
-function isDefinition(sentence) {
-  // X is Y pattern
-  return /\b(is|are|was|were)\b/.test(sentence) && sentence.split(" ").length > 4;
+function scoreSentence(sentence) {
+  let score = 0;
+
+  const lower = sentence.toLowerCase();
+
+  if (lower.includes(" is ")) score += 5;
+  if (lower.includes(" defined as ")) score += 6;
+  if (lower.includes(" refers to ")) score += 4;
+  if (sentence.length < 120) score += 2;
+  if (/\d/.test(sentence)) score += 2; // contains numbers
+  if (sentence === sentence.toUpperCase()) score += 3;
+
+  return score;
 }
 
-function extractDefinition(sentence) {
-  const match = sentence.match(/(.+?)\s+(is|are|was|were)\s+(.+)/i);
-  if (!match) return null;
+function extractBestChunks(pages) {
+  const chunks = [];
 
-  return {
-    concept: match[1].trim(),
-    definition: match[3].trim()
-  };
-}
+  pages.forEach((page) => {
+    const sentences = page.text
+      .split(".")
+      .map((s) => s.trim())
+      .filter(Boolean);
 
-function containsList(text) {
-  return /\(\w\)|\bi\)|\bii\)|\biii\)|\b-\b|\•/.test(text);
-}
+    sentences.forEach((sentence) => {
+      const score = scoreSentence(sentence);
 
-function generateQuestions(text) {
-  const sentences = splitSentences(text);
-
-  const questions = [];
-
-  sentences.forEach(sentence => {
-    const clean = sentence.trim();
-
-    // 🔥 RULE 1: Definition questions
-    if (isDefinition(clean)) {
-      const def = extractDefinition(clean);
-
-      if (def && def.concept.length > 2 && def.definition.length > 5) {
-        questions.push({
-          question: `What is ${def.concept}?`,
-          answer: def.definition
+      if (score >= 5) {
+        chunks.push({
+          text: sentence,
+          page: page.pageNumber,
+          score,
         });
       }
-    }
-
-    // 🔥 RULE 2: Concept explanation
-    if (clean.length > 60 && !containsList(clean)) {
-      questions.push({
-        question: `Explain: ${clean.slice(0, 50)}...`,
-        answer: clean
-      });
-    }
-
-    // 🔥 RULE 3: "What does X do?" pattern
-    if (clean.toLowerCase().includes("used for") || clean.toLowerCase().includes("used to")) {
-      const subject = clean.split("used")[0].trim();
-
-      questions.push({
-        question: `What is ${subject} used for?`,
-        answer: clean
-      });
-    }
+    });
   });
 
-  return questions.slice(0, 50); // prevent overload
+  return chunks.sort((a, b) => b.score - a.score);
+}
+
+function generateQuestions(input) {
+  const pages = normalizePages(input);
+  const chunks = extractBestChunks(pages);
+
+  return chunks.slice(0, 20).map((chunk, index) => {
+    return {
+      id: index + 1,
+      question: `According to page ${chunk.page}, what does the following statement explain?`,
+      answer: chunk.text,
+      page: chunk.page,
+      type: "offline",
+    };
+  });
 }
 
 module.exports = { generateQuestions };

@@ -1,49 +1,54 @@
-function splitSentences(text) {
-  return text
-    .replace(/\s+/g, " ")
-    .split(/(?<=[.?!])\s+/)
-    .map(s => s.trim())
-    .filter(s => s.length > 10);
+function scoreSentence(sentence) {
+  let score = 0;
+
+  const lower = sentence.toLowerCase();
+
+  if (lower.includes(" is ")) score += 5;
+  if (lower.includes(" means ")) score += 5;
+  if (lower.includes(" refers to ")) score += 4;
+  if (sentence.length < 120) score += 2;
+
+  return score;
 }
 
-function extractDefinition(sentence) {
-  const match = sentence.match(/(.+?)\s+(is|are|was|were)\s+(.+)/i);
-  if (!match) return null;
+function extractChunks(pages) {
+  const chunks = [];
 
-  return {
-    front: match[1].trim(),
-    back: match[3].trim()
-  };
-}
+  pages.forEach((page) => {
+    const sentences = page.text
+      .split(".")
+      .map((s) => s.trim())
+      .filter(Boolean);
 
-function generateFlashcards(text) {
-  const sentences = splitSentences(text);
+    sentences.forEach((sentence) => {
+      const score = scoreSentence(sentence);
 
-  const flashcards = [];
-
-  sentences.forEach(sentence => {
-    const clean = sentence.trim();
-
-    // 🔥 Definition flashcards
-    const def = extractDefinition(clean);
-
-    if (def && def.front.length > 2 && def.back.length > 5) {
-      flashcards.push({
-        front: def.front,
-        back: def.back
-      });
-    }
-
-    // 🔥 Key fact flashcards (short strong sentences)
-    if (clean.length > 40 && clean.length < 180) {
-      flashcards.push({
-        front: `Key idea`,
-        back: clean
-      });
-    }
+      if (score >= 4) {
+        chunks.push({
+          text: sentence,
+          page: page.pageNumber,
+        });
+      }
+    });
   });
 
-  return flashcards.slice(0, 50);
+  return chunks;
+}
+
+function generateFlashcards(pages) {
+  const chunks = extractChunks(pages);
+
+  return chunks.slice(0, 25).map((chunk, i) => {
+    const words = chunk.text.split(" ");
+
+    return {
+      id: i + 1,
+      front: words.slice(0, 6).join(" ") + "...",
+      back: chunk.text,
+      page: chunk.page,
+      type: "offline",
+    };
+  });
 }
 
 module.exports = { generateFlashcards };
