@@ -1,10 +1,9 @@
 from fastapi import FastAPI
+from app.routes.upload import router as upload_router
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-
-# Allow frontend requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -13,9 +12,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(upload_router)
+
 
 @app.get("/")
 async def root():
-    return {
-        "message": "Quiz API running"
-    }
+    return {"message": "Quiz API running"}
