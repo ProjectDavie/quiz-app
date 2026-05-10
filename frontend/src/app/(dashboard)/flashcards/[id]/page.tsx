@@ -1,50 +1,101 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 
-export default function FlashcardsPage({ params }: any) {
-  const { id } = use(params);
+const flashcards = [
+    {
+        front: "What is ATP?",
+        back: "The energy currency of the cell",
+    },
+    {
+        front: "What is the capital of France?",
+        back: "Paris",
+    },
+    {
+        front: "What is photosynthesis?",
+        back: "Conversion of light into chemical energy",
+    },
+];
 
-  const [doc, setDoc] = useState<any>(null);
+export default function FlashcardsPage() {
+    const params = useParams();
+    const router = useRouter();
 
-  useEffect(() => {
-    fetch(`http://localhost:5000/documents/${id}`)
-      .then((res) => res.json())
-      .then((data) => setDoc(data.document));
-  }, [id]);
+    const [active, setActive] = useState<number | null>(null);
 
-  if (!doc) {
     return (
-      <div className="min-h-screen bg-white text-black flex items-center justify-center">
-        Loading...
-      </div>
+        <div className="min-h-screen bg-gray-100 px-6 py-10 text-black">
+
+            <div className="max-w-5xl mx-auto">
+
+                {/* HEADER */}
+                <div className="mb-10">
+
+                    <button
+                        onClick={() => router.back()}
+                        className="text-sm text-gray-500 mb-4"
+                    >
+                        ← Back
+                    </button>
+
+                    <h1 className="text-4xl font-bold">
+                        Flashcards
+                    </h1>
+
+                    <p className="text-gray-500 mt-2">
+                        Document ID: {params.id}
+                    </p>
+
+                </div>
+
+                {/* FLASHCARDS */}
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                    {flashcards.map((card, index) => {
+                        const flipped = active === index;
+
+                        return (
+                            <button
+                                key={index}
+                                onClick={() =>
+                                    setActive(flipped ? null : index)
+                                }
+                                className="bg-white rounded-3xl shadow-md p-8 text-left min-h-[220px] hover:shadow-xl transition"
+                            >
+
+                                <p className="text-xs text-gray-400 mb-3">
+                                    Flashcard {index + 1}
+                                </p>
+
+                                {!flipped ? (
+                                    <>
+                                        <p className="text-sm text-gray-400">
+                                            FRONT
+                                        </p>
+
+                                        <h2 className="text-xl font-semibold mt-3">
+                                            {card.front}
+                                        </h2>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="text-sm text-gray-400">
+                                            BACK
+                                        </p>
+
+                                        <h2 className="text-lg mt-3 text-gray-700">
+                                            {card.back}
+                                        </h2>
+                                    </>
+                                )}
+
+                            </button>
+                        );
+                    })}
+
+                </div>
+            </div>
+        </div>
     );
-  }
-
-  return (
-    <div className="min-h-screen bg-white text-black px-8 py-10">
-      
-      {/* Title */}
-      <h1 className="text-3xl font-bold mb-8">
-        {doc.title}
-      </h1>
-
-      {/* Flashcards */}
-      <div className="space-y-4">
-        {doc.flashcards.map((f: any, i: number) => (
-          <div
-            key={i}
-            className="border border-gray-300 rounded-xl p-5 bg-white shadow-sm"
-          >
-            <p className="font-semibold text-lg mb-2">
-              {f.front}
-            </p>
-            <p className="text-gray-700">
-              {f.back}
-            </p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 }

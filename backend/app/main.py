@@ -1,8 +1,10 @@
 from fastapi import FastAPI
-from app.routes.upload import router as upload_router
 from fastapi.middleware.cors import CORSMiddleware
+from app.routes.document import router as document_router
+from app.routes.upload import router as upload_router
 
-app = FastAPI()
+
+app = FastAPI(title="Quiz AI API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -13,8 +15,8 @@ app.add_middleware(
 )
 
 app.include_router(upload_router)
-
+app.include_router(document_router)
 
 @app.get("/")
 async def root():
-    return {"message": "Quiz API running"}
+    return {"status": "Quiz AI API running clean"}

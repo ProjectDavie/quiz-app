@@ -1,93 +1,81 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+
+const questions = [
+    {
+        question: "What is the primary function of mitochondria?",
+        answer: "Energy production",
+    },
+    {
+        question: "What does DNA stand for?",
+        answer: "Deoxyribonucleic Acid",
+    },
+    {
+        question: "What organ pumps blood?",
+        answer: "Heart",
+    },
+];
 
 export default function QuizPage() {
-  const params = useParams();
-  const id = params?.id;
+    const params = useParams();
+    const router = useRouter();
 
-  const [doc, setDoc] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchDoc() {
-      try {
-        const res = await fetch(
-          `http://localhost:5000/documents/${id}`
-        );
-        const data = await res.json();
-        setDoc(data.document);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (id) fetchDoc();
-  }, [id]);
-
-  if (loading) {
     return (
-      <div className="p-10 text-gray-500">Loading quiz...</div>
+        <div className="min-h-screen bg-gray-100 px-6 py-10 text-black">
+
+            <div className="max-w-4xl mx-auto">
+
+                {/* HEADER */}
+                <div className="mb-10">
+                    <button
+                        onClick={() => router.back()}
+                        className="text-sm text-gray-500 mb-4"
+                    >
+                        ← Back
+                    </button>
+
+                    <h1 className="text-4xl font-bold">
+                        Quiz Session
+                    </h1>
+
+                    <p className="text-gray-500 mt-2">
+                        Document ID: {params.id}
+                    </p>
+                </div>
+
+                {/* QUESTIONS */}
+                <div className="space-y-6">
+
+                    {questions.map((q, index) => (
+                        <div
+                            key={index}
+                            className="bg-white rounded-3xl shadow-md p-8"
+                        >
+
+                            <p className="text-sm text-gray-400 mb-3">
+                                Question {index + 1}
+                            </p>
+
+                            <h2 className="text-xl font-semibold">
+                                {q.question}
+                            </h2>
+
+                            <div className="mt-6">
+                                <button className="bg-black text-white px-5 py-3 rounded-2xl">
+                                    Reveal Answer
+                                </button>
+                            </div>
+
+                            <p className="mt-5 text-gray-600">
+                                {q.answer}
+                            </p>
+
+                        </div>
+                    ))}
+
+                </div>
+            </div>
+        </div>
     );
-  }
-
-  if (!doc) {
-    return (
-      <div className="p-10 text-gray-500">
-        Document not found
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-white text-black px-6 md:px-12 py-10">
-
-      {/* HEADER */}
-      <div className="max-w-4xl mx-auto mb-10">
-        <h1 className="text-2xl font-bold">
-          Quiz: {doc.title}
-        </h1>
-
-        <p className="text-gray-500 text-sm mt-1">
-          Mode: {doc.mode === "ai" ? "AI Generated" : "Offline"}
-        </p>
-      </div>
-
-      {/* QUESTIONS */}
-      <div className="max-w-4xl mx-auto space-y-6">
-
-        {doc.questions?.map((q: any, i: number) => (
-          <div
-            key={i}
-            className="bg-white border shadow-sm rounded-2xl p-6"
-          >
-
-            {/* QUESTION */}
-            <p className="font-semibold text-lg">
-              Q{i + 1}. {q.question}
-            </p>
-
-            {/* ANSWER */}
-            <p className="text-gray-600 mt-3 text-sm leading-relaxed">
-              {q.answer}
-            </p>
-
-            {/* 📍 PAGE REFERENCE BADGE */}
-            {q.page && (
-              <div className="mt-4">
-                <span className="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-black text-white">
-                  📄 Page {q.page}
-                </span>
-              </div>
-            )}
-
-          </div>
-        ))}
-
-      </div>
-    </div>
-  );
 }
