@@ -1,0 +1,8 @@
+services:
+  quiz-api:
+    build: .
+    container_name: quiz-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app

@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pymupdf
+pdfplumber
+motor
+pydantic
+python-dotenv
+numpy
+scikit-learn
+nltk
