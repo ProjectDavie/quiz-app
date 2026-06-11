@@ -5,6 +5,7 @@ from app.routes.upload import router as upload_router
 from app.routes.documents import router as documents_router
 from app.routes.extract import router as extract_router
 from app.routes.files import router as files_router
+from app.routes.pages import router as pages_router
 
 app = FastAPI(
     title="Quiz App API",
@@ -26,6 +27,7 @@ app.include_router(upload_router)
 app.include_router(documents_router)
 app.include_router(extract_router)
 app.include_router(files_router)
+app.include_router(pages_router)
 
 @app.get("/")
 def root():

@@ -1,24 +1,42 @@
+version: "3.9"
+
 services:
   quiz-api:
     build: .
     container_name: quiz-api
+
     ports:
       - "8000:8000"
+
     environment:
+      # IMPORTANT: this must match mongo service name
       - MONGO_URL=mongodb://mongo:27017
+
     volumes:
+      # mount full backend (hot reload if you want dev mode)
       - .:/app
+
+      # 🔥 CRITICAL: shared storage folder for PDFs
+      # this makes backend + file access consistent
       - ./storage:/app/storage
+
     depends_on:
       - mongo
+
+    restart: unless-stopped
 
   mongo:
     image: mongo:6
     container_name: mongo
+
     ports:
       - "27017:27017"
+
     volumes:
+      # persist database
       - mongo_data:/data/db
+
+    restart: unless-stopped
 
 volumes:
   mongo_data:
