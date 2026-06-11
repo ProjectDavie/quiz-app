@@ -1,11 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes.document import router as document_router
+
 from app.routes.upload import router as upload_router
+from app.routes.documents import router as documents_router
+from app.routes.extract import router as extract_router
+from app.routes.files import router as files_router
 
+app = FastAPI(
+    title="Quiz App API",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
 
-app = FastAPI(title="Quiz AI API")
-
+# CORS (ALLOW FRONTEND)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,8 +23,10 @@ app.add_middleware(
 )
 
 app.include_router(upload_router)
-app.include_router(document_router)
+app.include_router(documents_router)
+app.include_router(extract_router)
+app.include_router(files_router)
 
 @app.get("/")
-async def root():
-    return {"status": "Quiz AI API running clean"}
+def root():
+    return {"status": "ok"}

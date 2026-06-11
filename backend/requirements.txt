@@ -1,13 +1,5 @@
 fastapi
-uvicorn[standard]
-python-multipart
-pymupdf
-pdfplumber
+uvicorn
 motor
-pydantic
-python-dotenv
-numpy
-scikit-learn
-nltk
-pymupdf
 python-multipart
+pymupdf

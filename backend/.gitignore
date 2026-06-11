@@ -39,3 +39,48 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+venv/
+.env
+.env.*
+
+# Docker
+docker-compose.override.yml
+
+# Mongo / DB dumps
+*.bson
+*.jsonl
+
+# Storage (VERY IMPORTANT - your uploaded PDFs)
+storage/
+app/storage/
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+__pycache__/
+*.pyc
+.env
+.venv/
+venv/
+storage/
+.DS_Store
+
+# docker artifacts
+*.log
+
+text.txt
