@@ -1,134 +1,71 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import UploadArea from "../../../components/uploads/UploadArea";
+import { Upload, FileText, CheckCircle } from "lucide-react";
 
 export default function UploadPage() {
-  const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<"ai" | "offline">("offline");
-  const [questions, setQuestions] = useState<any[]>([]);
-  const router = useRouter();
+    return (
+        <div className="space-y-8">
+            {/* Page Header */}
+            <div>
+                <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+                    <Upload className="text-blue-600" size={32} />
+                    Upload PDF
+                </h1>
+                <p className="text-slate-600 mt-2">Upload your PDF documents to extract notes and generate quizzes</p>
+            </div>
 
-  async function upload(file: File) {
-    setLoading(true);
+            {/* Main Upload Area */}
+            <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
+                <UploadArea />
+            </div>
 
-    const formData = new FormData();
-    formData.append("pdf", file);
-    formData.append("aiMode", String(mode === "ai"));
+            {/* Features Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <FeatureCard
+                    icon={<FileText className="text-blue-500" size={24} />}
+                    title="Extract Content"
+                    description="Automatically extract text and structured content from your PDFs"
+                />
+                <FeatureCard
+                    icon={<CheckCircle className="text-green-500" size={24} />}
+                    title="Generate Quizzes"
+                    description="Create interactive quizzes based on the extracted content"
+                />
+                <FeatureCard
+                    icon={<Upload className="text-purple-500" size={24} />}
+                    title="Multiple Formats"
+                    description="Support for various PDF formats and document types"
+                />
+            </div>
 
-    const res = await fetch("http://localhost:5000/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await res.json();
-
-    setQuestions(data.questions || []);
-
-    setLoading(false);
-  }
-
-  return (
-    <div className="min-h-screen bg-white text-black px-6 md:px-12 py-10">
-
-      {/* HEADER */}
-      <div className="max-w-5xl mx-auto mb-10">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Upload Document
-        </h1>
-        <p className="text-gray-500 mt-1">
-          Generate quizzes & flashcards instantly
-        </p>
-      </div>
-
-      {/* UPLOAD CARD */}
-      <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-2xl p-8">
-
-        {/* MODE TOGGLE */}
-        <div className="flex gap-3 mb-6">
-          <button
-            onClick={() => setMode("offline")}
-            className={`flex-1 py-3 rounded-xl text-sm font-medium border ${
-              mode === "offline"
-                ? "bg-black text-white"
-                : "bg-white text-black"
-            }`}
-          >
-            Offline Mode
-          </button>
-
-          <button
-            onClick={() => setMode("ai")}
-            className={`flex-1 py-3 rounded-xl text-sm font-medium border ${
-              mode === "ai"
-                ? "bg-black text-white"
-                : "bg-white text-black"
-            }`}
-          >
-            AI Mode
-          </button>
+            {/* Info Section */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <h3 className="font-semibold text-blue-900 mb-3">📋 Supported File Types</h3>
+                <ul className="text-blue-800 space-y-2 text-sm">
+                    <li>✓ PDF documents (.pdf)</li>
+                    <li>✓ Maximum file size: 50MB</li>
+                    <li>✓ Scanned PDFs with OCR support</li>
+                </ul>
+            </div>
         </div>
+    );
+}
 
-        {/* UPLOAD INPUT */}
-        <label className="block border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer hover:bg-gray-50 transition">
-          <input
-            type="file"
-            accept="application/pdf"
-            hidden
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) upload(file);
-            }}
-          />
-
-          <p className="text-lg font-medium">
-            Click to upload PDF
-          </p>
-
-          <p className="text-sm text-gray-500 mt-1">
-            Mode: {mode === "ai" ? "AI Enhanced" : "Offline NLP"}
-          </p>
-        </label>
-
-        {/* LOADING */}
-        {loading && (
-          <p className="text-center mt-6 text-gray-500">
-            Processing document...
-          </p>
-        )}
-      </div>
-
-      {/* RESULTS */}
-      {questions.length > 0 && (
-        <div className="max-w-5xl mx-auto mt-12">
-
-          <h2 className="text-xl font-semibold mb-6">
-            Generated Questions
-          </h2>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {questions.map((q, i) => (
-              <div
-                key={i}
-                className="bg-white shadow-md rounded-2xl p-6"
-              >
-                <p className="font-semibold">{q.question}</p>
-                <p className="text-gray-500 mt-2 text-sm">
-                  {q.answer}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <button
-            onClick={() => router.push("/projects")}
-            className="mt-10 bg-black text-white px-6 py-3 rounded-xl"
-          >
-            Go to Projects →
-          </button>
-
+function FeatureCard({
+    icon,
+    title,
+    description,
+}: {
+    icon: React.ReactNode;
+    title: string;
+    description: string;
+}) {
+    return (
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 hover:shadow-md transition duration-200">
+            <div className="mb-3">{icon}</div>
+            <h3 className="font-semibold text-slate-900 mb-2">{title}</h3>
+            <p className="text-slate-600 text-sm">{description}</p>
         </div>
-      )}
-    </div>
-  );
+    );
 }

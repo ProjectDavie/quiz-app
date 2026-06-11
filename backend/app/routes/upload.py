@@ -1,31 +1,62 @@
-from fastapi import APIRouter, UploadFile, File
-import fitz  # PyMuPDF
+import os
+import uuid
+from datetime import datetime
+from fastapi import APIRouter, UploadFile, File, HTTPException
+
+from app.db import documents
 
 router = APIRouter()
+
+BASE_STORAGE = "/app/storage/documents"
 
 
 @router.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
-    if not file.filename.endswith(".pdf"):
-        return {"error": "Only PDF allowed"}
 
-    content = await file.read()
+    try:
+        document_id = str(uuid.uuid4())
 
-    doc = fitz.open(stream=content, filetype="pdf")
+        # ------------------------
+        # 1. CREATE FOLDER
+        # ------------------------
+        folder = os.path.join(BASE_STORAGE, document_id)
+        os.makedirs(folder, exist_ok=True)
 
-    pages = []
+        file_path = os.path.join(folder, "original.pdf")
 
-    for page_num in range(len(doc)):
-        page = doc.load_page(page_num)
-        text = page.get_text("text")
+        # ------------------------
+        # 2. SAVE FILE
+        # ------------------------
+        content = await file.read()
 
-        pages.append({
-            "pageNumber": page_num + 1,
-            "text": text.strip()
-        })
+        with open(file_path, "wb") as f:
+            f.write(content)
 
-    return {
-        "filename": file.filename,
-        "pages": pages,
-        "totalPages": len(pages)
-    }
+        # ------------------------
+        # 3. BUILD DOC OBJECT
+        # ------------------------
+        doc = {
+            "documentId": document_id,
+            "title": file.filename,
+            "pdfPath": f"storage/documents/{document_id}/original.pdf",
+            "status": "uploaded",
+            "pageCount": 0,
+            "createdAt": datetime.utcnow()
+        }
+
+        # ------------------------
+        # 4. INSERT INTO MONGO (CRITICAL FIX)
+        # ------------------------
+        result = await documents.insert_one(doc)
+
+        if not result.inserted_id:
+            raise HTTPException(status_code=500, detail="Mongo insert failed")
+
+        return {
+            "documentId": document_id,
+            "status": "uploaded"
+        }
+
+    except Exception as e:
+        print("UPLOAD ERROR:", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
