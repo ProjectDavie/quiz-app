@@ -1,117 +1,44 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Brain } from "lucide-react";
 
-const API =
-    process.env.NEXT_PUBLIC_API_URL ||
-    "http://192.168.100.55:8000";
-
-export default function QuizHomePage() {
-    const [docs, setDocs] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    const router = useRouter();
-
-    /* =========================
-        FETCH DOCUMENTS
-    ========================= */
-    useEffect(() => {
-        async function fetchDocuments() {
-            try {
-                const res = await fetch(`${API}/documents`);
-                const data = await res.json();
-
-                setDocs(data.documents || []);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        fetchDocuments();
-    }, []);
-
+export default function QuizPage() {
     return (
-        <div className="min-h-screen bg-gray-100 text-black px-6 py-10">
+        <div className="space-y-8">
+            {/* Page Header */}
+            <div>
+                <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+                    <Brain className="text-blue-600" size={32} />
+                    Quiz
+                </h1>
+                <p className="text-slate-600 mt-2">Test your knowledge with interactive quizzes</p>
+            </div>
 
-            <div className="max-w-7xl mx-auto">
-
-                {/* HEADER */}
-                <div className="mb-12">
-
-                    <h1 className="text-4xl font-bold">
-                        Quiz Library
-                    </h1>
-
-                    <p className="text-gray-500 mt-2">
-                        Select a document to start a quiz
-                    </p>
-
+            {/* Main Content */}
+            <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-12 text-center">
+                <div className="space-y-4">
+                    <Brain className="mx-auto text-slate-300" size={64} />
+                    <h2 className="text-2xl font-semibold text-slate-900">Hello, Quiz World! 👋</h2>
+                    <p className="text-slate-600 text-lg">Quiz feature coming soon...</p>
                 </div>
+            </div>
 
-                {/* LOADING */}
-                {loading && (
-                    <p className="text-gray-500">
-                        Loading quizzes...
-                    </p>
-                )}
-
-                {/* EMPTY */}
-                {!loading && docs.length === 0 && (
-                    <div className="bg-white rounded-3xl p-10 shadow-md">
-                        <h2 className="text-2xl font-semibold">
-                            No quiz documents
-                        </h2>
-
-                        <p className="text-gray-500 mt-2">
-                            Upload PDFs first
-                        </p>
-                    </div>
-                )}
-
-                {/* GRID */}
-                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-
-                    {docs.map((doc) => (
-                        <div
-                            key={doc._id}
-                            className="bg-white rounded-3xl shadow-md p-6 hover:shadow-xl transition"
-                        >
-
-                            <h2 className="text-xl font-semibold leading-tight">
-                                {doc.title || "Untitled Document"}
-                            </h2>
-
-                            <div className="mt-4 text-sm text-gray-500 space-y-1">
-
-                                <p>
-                                    Pages:{" "}
-                                    {Array.isArray(doc.pages)
-                                        ? doc.pages.length
-                                        : 0}
-                                </p>
-
-                                <p>
-                                    Questions:{" "}
-                                    {doc.questions?.length || 0}
-                                </p>
-
-                            </div>
-
-                            <button
-                                onClick={() =>
-                                    router.push(`/quiz/${doc._id}`)
-                                }
-                                className="mt-6 w-full bg-black text-white py-3 rounded-2xl"
-                            >
-                                Start Quiz
-                            </button>
-
-                        </div>
-                    ))}
-
+            {/* Features Preview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-blue-50 rounded-lg border border-blue-200 p-6">
+                    <div className="text-2xl mb-2">📝</div>
+                    <h3 className="font-semibold text-slate-900 mb-2">Multiple Choice</h3>
+                    <p className="text-slate-600 text-sm">Answer questions from your documents</p>
+                </div>
+                <div className="bg-purple-50 rounded-lg border border-purple-200 p-6">
+                    <div className="text-2xl mb-2">⚡</div>
+                    <h3 className="font-semibold text-slate-900 mb-2">Quick Review</h3>
+                    <p className="text-slate-600 text-sm">Fast-paced quiz mode for quick learning</p>
+                </div>
+                <div className="bg-green-50 rounded-lg border border-green-200 p-6">
+                    <div className="text-2xl mb-2">📊</div>
+                    <h3 className="font-semibold text-slate-900 mb-2">Track Progress</h3>
+                    <p className="text-slate-600 text-sm">Monitor your quiz performance</p>
                 </div>
             </div>
         </div>
