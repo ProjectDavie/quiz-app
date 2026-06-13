@@ -1,5 +1,11 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+import * as pdfjsLib from "pdfjs-dist";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "/pdf.worker.min.mjs";
+
 export default function PdfViewer({
     documentId,
     pageNumber,
@@ -7,12 +13,45 @@ export default function PdfViewer({
     documentId: string;
     pageNumber: number;
 }) {
-    const url = `http://192.168.100.55:8000/files/${documentId}#page=${pageNumber}`;
+
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    useEffect(() => {
+
+        const load = async () => {
+
+            const pdf = await pdfjsLib.getDocument(
+                `http://192.168.100.55:8000/files/${documentId}`
+            ).promise;
+
+            const page = await pdf.getPage(pageNumber);
+
+            const viewport = page.getViewport({ scale: 1 });
+
+            const canvas = canvasRef.current;
+
+            if (!canvas) return;
+
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return;
+
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+
+            await page.render({
+                canvasContext: ctx,
+                viewport,
+                canvas
+            }).promise;
+        };
+
+        load();
+
+    }, [documentId, pageNumber]);
 
     return (
-        <iframe
-            src={url}
-            className="w-full h-full border-0"
-        />
+        <div className="h-full overflow-auto flex justify-center bg-gray-100">
+            <canvas ref={canvasRef} />
+        </div>
     );
 }

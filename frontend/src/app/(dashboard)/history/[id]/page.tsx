@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
 import HistoryToolbar from "../../../../components/history/HistoryToolbar";
-import PdfViewer from "../../../../components/history/PdfViewer";
-import TextViewer from "../../../../components/history//TextViewer";
-import ProgressBar from "../../../../components/history/ProgressBar";
+import PdfViewer from "../../../..//components/history/PdfViewer";
+import TextViewer from "../../../..//components/history/TextViewer";
+import ProgressBar from "../../../..//components/history/ProgressBar";
 
 const API = "http://192.168.100.55:8000";
 
@@ -17,11 +17,11 @@ export default function HistoryPage() {
     const [doc, setDoc] = useState<any>(null);
     const [pageIndex, setPageIndex] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-
     const [mode, setMode] = useState<"raw" | "clean">("raw");
     const [progress, setProgress] = useState(0);
     const [extracting, setExtracting] = useState(false);
 
+    // load doc once
     useEffect(() => {
         fetch(`${API}/documents/${id}`)
             .then(r => r.json())
@@ -32,12 +32,9 @@ export default function HistoryPage() {
             });
     }, [id]);
 
-    const extract = async () => {
-        setExtracting(true);
-
-        await fetch(`${API}/documents/${id}/extract`, {
-            method: "POST"
-        });
+    // SAFE polling (only when extracting)
+    useEffect(() => {
+        if (!extracting) return;
 
         const interval = setInterval(async () => {
             const res = await fetch(`${API}/documents/${id}`);
@@ -45,11 +42,28 @@ export default function HistoryPage() {
 
             setProgress(data.progress);
 
-            if (data.status === "completed") {
-                clearInterval(interval);
+            if (data.status === "completed" || data.status === "failed") {
                 setExtracting(false);
+                setDoc(data);
+                clearInterval(interval);
             }
-        }, 500);
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [extracting, id]);
+
+    const extract = async () => {
+        if (extracting) return;
+
+        const res = await fetch(`${API}/documents/${id}/extract`, {
+            method: "POST"
+        });
+
+        const data = await res.json();
+
+        if (data.status === "started") {
+            setExtracting(true);
+        }
     };
 
     if (!doc) return <div>Loading...</div>;
@@ -64,7 +78,7 @@ export default function HistoryPage() {
                 onPrev={() => setPageIndex(p => Math.max(0, p - 1))}
                 onNext={() => setPageIndex(p => Math.min(totalPages - 1, p + 1))}
                 onToggleMode={() => setMode(m => m === "raw" ? "clean" : "raw")}
-                onGoToPage={(p: number) => setPageIndex(Math.max(0, p - 1))}
+                onGoToPage={(p: number) => setPageIndex(p)}
                 onExtract={extract}
                 extracting={extracting}
             />

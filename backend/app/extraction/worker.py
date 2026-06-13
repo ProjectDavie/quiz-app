@@ -4,6 +4,19 @@ from app.db import documents, pages
 
 async def extract_document(doc_id: str, pdf_path: str):
 
+    # 🚨 GUARD: prevent duplicate workers
+    doc = await documents.find_one({"documentId": doc_id})
+
+    if not doc:
+        return
+
+    if doc.get("status") == "completed":
+        return
+
+    if doc.get("status") == "extracting":
+        print("⚠️ Worker already running for this document")
+        return
+
     doc = fitz.open(pdf_path)
     total_pages = len(doc)
 
@@ -18,15 +31,29 @@ async def extract_document(doc_id: str, pdf_path: str):
     )
 
     for i in range(total_pages):
+
+        # 🚨 optional safety check (prevents zombie duplicate workers mid-run)
+        current = await documents.find_one({"documentId": doc_id})
+        if current.get("status") != "extracting":
+            print("🛑 Extraction aborted externally")
+            return
+
         page = doc.load_page(i)
         text = page.get_text()
 
-        await pages.insert_one({
-            "documentId": doc_id,
-            "pageNumber": i + 1,
-            "rawText": text,
-            "cleanText": text.strip()
-        })
+        await pages.update_one(
+            {
+                "documentId": doc_id,
+                "pageNumber": i + 1
+            },
+            {
+                "$set": {
+                    "rawText": text,
+                    "cleanText": text.strip()
+                }
+            },
+            upsert=True
+        )
 
         pages_done = i + 1
         progress = int((pages_done / total_pages) * 100)
@@ -44,5 +71,8 @@ async def extract_document(doc_id: str, pdf_path: str):
 
     await documents.update_one(
         {"documentId": doc_id},
-        {"$set": {"status": "completed", "progress": 100}}
+        {"$set": {
+            "status": "completed",
+            "progress": 100
+        }}
     )
